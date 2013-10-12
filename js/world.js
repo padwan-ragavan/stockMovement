@@ -1,0 +1,7 @@
+function paintWorld(){
+
+}
+
+$(function (){
+	paintWorld();
+});
