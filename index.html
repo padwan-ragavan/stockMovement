@@ -9,8 +9,18 @@
 	<script src="js\movements.js"></script>
 	<script type="text/javascript">
 		 $(function  () {
-		 	var world = new Datamap({element: document.getElementById('container')});
-		 	world.arc(getMovements(), {strokeWidth: 2})
+		 	var world = new Datamap({element: document.getElementById('container'), scope: 'world'});
+		 	getMovementPerCountry()
+		 		.then(function(data){
+		 			world.bubbles(data, {
+popupTemplate:function (geography, data) {
+return ['<div class="hoverinfo"><strong>' + data.originCode + '</strong>',
+'<br/>Product: ' + data.productId,
+'<br/>Transfers: ' + data.count,
+'</div>'].join('');
+}
+});
+		 		});		 
 		 });
 	</script>
 </head>
