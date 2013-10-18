@@ -1,0 +1,71 @@
+<html>
+<head>
+	<script src="js\jquery-2.0.3.min.js"></script>
+	<script src="js\underscore-min.js"></script>
+	<script src="js\d3.v3.min.js"></script>
+	<script src="js\topojson.v1.min.js"></script>
+	<script src="js\datamaps.world.min.js"></script>
+	<script src="js\world.js"></script>
+	<script src="js\movements.js"></script>
+	<script type="text/javascript">
+		var maxWidth = 1000;
+		var maxHeight = 500;
+		var padding = 50;
+
+		function addProductTransfers(transfers){
+			console.log(transfers);
+			var transfersContainer = $("<div>")
+			var maxRadius = d3.max(transfers, function(d){ return d.radius;});
+
+			var cxScale = d3.scale.linear().clamp(true)
+			.domain([0, 5 * maxRadius])
+			.range([0 + maxRadius + padding, maxWidth - padding])
+			;
+
+			var rScale = d3.scale.linear()
+			.domain([0, maxRadius * 3 ])
+			.range([0 + padding, maxHeight-padding]);
+
+			$("#container").append(transfersContainer)
+			var svgContainer = d3.select(transfersContainer[0])
+									.append("svg").attr({width: maxWidth, height: maxHeight});
+
+			svgContainer
+				.selectAll("circle")
+				.data(transfers)
+				.enter()
+					.append("circle")
+					.attr({cx:function(d, i){return cxScale(maxRadius * 2 * (i + 1));}, cy: maxHeight/2, r: function(d){return rScale(d.radius);}, fill: 'hsla(0.4,30%,50%,0.6)'});
+			svgContainer
+				.selectAll("text")
+				.data(transfers)
+				.enter()					
+				.append('text')
+						.attr({ x : function(d, i){return cxScale(maxRadius * 2 * (i+1))}, y : maxHeight/2})
+						.text(function(d){return d.origin + " " + d.radius;});
+
+			svgContainer
+				.append("text")
+					.attr({ x : maxWidth/2, y : 50})
+					.text("ProductId " + transfers[0].productId);
+		};
+
+		 $(function  () {
+		 	getMovementPerCountry()
+		 		.then(function(data){
+		 			var productTrasfers = _.groupBy(data, function(d){return d.productId;});
+		 			for(var product in productTrasfers){
+		 				var productTransfer = productTrasfers[product];
+		 				var officeTransers = _.groupBy(productTransfer, function(t){ return t.origin;})
+		 				var cumulative = _.map(officeTransers, function(o){ return $.extend({}, {origin: o[0].origin, radius : _.reduce(o, function(s, t){return t.radius;}, 0), productId: product})})
+		 				addProductTransfers(cumulative);
+		 			}
+
+		 		});		 
+		 });
+	</script>
+</head>
+<body>
+	<div id="container" style="position: relative; width: 1500px; height: 900px;"></div>
+</body>
+</html>
